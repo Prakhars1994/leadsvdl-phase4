@@ -1,5 +1,6 @@
 name = "leadsvdl-phase4"
 type = "javascript"
+main = "worker.js"
 account_id = "ac58b62e8f62115bb2a73be4a5202360"
 workers_dev = true
 compatibility_date = "2024-10-25"
