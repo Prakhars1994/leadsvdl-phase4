@@ -1,13 +1,32 @@
 # LeadsVDL Phase 4 - Deployment Guide
 
 ## ✅ Status
-- **Code**: Ready to deploy (`server.py` - working locally)
+- **Code**: Ready to deploy (`server.py` - working locally, tested ✅)
 - **GitHub**: https://github.com/Prakhars1994/leadsvdl-phase4
-- **Tested**: Homepage ✅ | API Search ✅ | Lead Scoring ✅
+- **Tested**: Homepage ✅ | API Search ✅ | Lead Scoring ✅ | All endpoints 200
 
-## 🚀 Quick Deploy Options
+## 🚀 Deploy Now (Fastest - 2 minutes)
 
-### Option 1: Railway (Recommended - Free & Fast)
+### ⭐ RENDER (Recommended - Easiest & Fastest)
+
+**STEP 1:** Go to https://render.com/dashboard
+**STEP 2:** Click "New +" → "Web Service"  
+**STEP 3:** Select "Public Git Repository" → Paste: `https://github.com/Prakhars1994/leadsvdl-phase4`
+**STEP 4:** Fill form:
+- Name: `leadsvdl-phase4`
+- Environment: `Python 3`
+- Build Command: `pip install -r requirements.txt`
+- Start Command: `python3 server.py`
+- Plan: Free
+**STEP 5:** Click "Deploy" → Wait 1-2 minutes → Live! ✅
+
+**Live URL:** `https://leadsvdl-phase4.onrender.com`
+
+---
+
+## Other Options
+
+### Option 1: Railway (Free & Fast)
 ```bash
 # 1. Go to https://railway.app
 # 2. Create new project
