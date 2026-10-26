@@ -1,6 +1,12 @@
 name = "leadsvdl-phase4"
 type = "javascript"
-main = "worker.js"
-account_id = "ac58b62e8f62115bb2a73be4a5202360"
-workers_dev = true
-compatibility_date = "2024-10-25"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+[env.production]
+name = "leadsvdl-phase4"
+route = "https://leadsvdl-phase4.workers.dev/*"
+zone_id = ""
+
+[build]
+command = "npm install -g wrangler"
