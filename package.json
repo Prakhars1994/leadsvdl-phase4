@@ -1,0 +1,11 @@
+{
+  "name": "leadsvdl-phase4",
+  "version": "1.0.0",
+  "description": "LeadsVDL Phase 4 - Universal Lead Discovery System",
+  "type": "module",
+  "main": "worker.js",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {}
+}
