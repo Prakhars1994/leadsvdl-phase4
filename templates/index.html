@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LeadsVDL - Complete Lead Discovery System (All 4 Phases)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1B5E20 0%, #C41E3A 100%);
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <div class="min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-8">
+            <!-- Header -->
+            <h1 class="text-4xl font-bold text-center mb-2">LeadsVDL</h1>
+            <p class="text-center text-gray-600 mb-8">Complete Lead Discovery System (Phases 1-4)</p>
+            
+            <!-- Phase Tabs -->
+            <div class="mb-8 flex flex-wrap gap-2">
+                <button class="phase-btn px-4 py-2 rounded-lg font-semibold active bg-gradient-to-r from-green-700 to-red-700 text-white" data-phase="universal">
+                    🔍 Universal Search
+                </button>
+                <button class="phase-btn px-4 py-2 rounded-lg font-semibold border-2 border-green-700" data-phase="phase1">
+                    📧 Phase 1: Email Finder
+                </button>
+                <button class="phase-btn px-4 py-2 rounded-lg font-semibold border-2 border-green-700" data-phase="phase2">
+                    📞 Phase 2: Phone Finder
+                </button>
+                <button class="phase-btn px-4 py-2 rounded-lg font-semibold border-2 border-green-700" data-phase="phase3">
+                    📊 Phase 3: Scorer
+                </button>
+                <button class="phase-btn px-4 py-2 rounded-lg font-semibold border-2 border-green-700" data-phase="phase4">
+                    🎯 Phase 4: All Features
+                </button>
+            </div>
+
+            <!-- Search Form -->
+            <div class="mb-8" id="search-form">
+                <input type="text" id="search-query" placeholder="Search leads..." class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg mb-4">
+                <button onclick="performSearch()" class="w-full px-6 py-3 bg-gradient-to-r from-green-700 to-red-700 text-white font-semibold rounded-lg hover:shadow-lg">
+                    Search Leads
+                </button>
+            </div>
+
+            <!-- Results Container -->
+            <div id="results-container" class="space-y-4">
+                <p class="text-center text-gray-500">Enter a query and click Search to find leads</p>
+            </div>
+
+            <!-- Export Button -->
+            <div class="mt-8 text-center">
+                <button onclick="exportResults()" class="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700">
+                    📥 Export as CSV
+                </button>
+            </div>
+
+            <!-- Footer -->
+            <div class="mt-12 pt-8 border-t text-center text-sm text-gray-600">
+                <p><strong>VDL Digital</strong> | +91 84460 00784 | vdldigital.com</p>
+                <p class="mt-2">LeadsVDL - White-label lead discovery for email marketing agencies</p>
+                <p class="mt-1 text-xs">Phases 1-4: Email Finder | Phone Finder | Lead Scoring | Universal Search</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPhase = 'universal';
+        let currentResults = [];
+
+        document.querySelectorAll('.phase-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.phase-btn').forEach(b => {
+                    b.classList.remove('bg-gradient-to-r', 'from-green-700', 'to-red-700', 'text-white');
+                    b.classList.add('border-2', 'border-green-700');
+                });
+                this.classList.add('bg-gradient-to-r', 'from-green-700', 'to-red-700', 'text-white');
+                this.classList.remove('border-2', 'border-green-700');
+                currentPhase = this.dataset.phase;
+            });
+        });
+
+        async function performSearch() {
+            const query = document.getElementById('search-query').value;
+            if (!query) return alert('Please enter a search query');
+
+            const response = await fetch('/api/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query, mode: currentPhase, filters: {} })
+            });
+
+            const data = await response.json();
+            currentResults = data.results || [];
+            
+            displayResults(data);
+        }
+
+        function displayResults(data) {
+            const container = document.getElementById('results-container');
+            if (!data.results || data.results.length === 0) {
+                container.innerHTML = '<p class="text-gray-500">No results found</p>';
+                return;
+            }
+
+            let html = '<div class="space-y-4">';
+            data.results.forEach(lead => {
+                const scoring = lead.scoring || {};
+                html += `
+                    <div class="border-l-4 border-green-700 bg-gray-50 p-4 rounded">
+                        <h3 class="font-bold text-lg">${lead.name}</h3>
+                        <p class="text-sm text-gray-600">${lead.title} at ${lead.company}</p>
+                        <p class="text-sm text-gray-600">${lead.location} | ${lead.industry}</p>
+                        ${lead.email ? `<p class="text-sm">📧 ${lead.email}</p>` : ''}
+                        ${lead.phone ? `<p class="text-sm">📞 ${lead.phone}</p>` : ''}
+                        ${scoring.final_score ? `<p class="mt-2 font-semibold">${scoring.color} Score: ${scoring.final_score}/100 - ${scoring.category}</p>` : ''}
+                    </div>
+                `;
+            });
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        async function exportResults() {
+            if (currentResults.length === 0) return alert('No results to export');
+            
+            const response = await fetch('/api/export', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ leads: currentResults })
+            });
+            
+            const data = await response.json();
+            const link = document.createElement('a');
+            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(data.csv);
+            link.download = data.filename;
+            link.click();
+        }
+    </script>
+</body>
+</html>
