@@ -1,37 +1,70 @@
 export default {
-  async fetch(request) {
+  fetch: async (request) => {
     const url = new URL(request.url);
-    
+
+    // Handle homepage
     if (url.pathname === '/' || url.pathname === '') {
       return new Response(getHTML(), {
-        headers: { 'Content-Type': 'text/html; charset=utf-8' }
+        status: 200,
+        headers: {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Access-Control-Allow-Origin': '*'
+        }
       });
     }
-    
+
+    // Handle API search
     if (url.pathname === '/api/search' && request.method === 'POST') {
-      const body = await request.json();
-      return new Response(JSON.stringify({
-        query: body.query,
-        results: [
-          { name: "Rajesh Kumar", title: "CTO", company: "TechCorp", email: "rajesh@techcorp.com", score: 85 },
-          { name: "Priya Singh", title: "CEO", company: "Uniforms India", email: "priya@uniforms.com", score: 88 }
-        ],
-        generated_at: new Date().toISOString()
-      }), {
-        headers: { 'Content-Type': 'application/json' }
-      });
+      try {
+        const body = await request.json();
+        return new Response(JSON.stringify({
+          status: 'success',
+          query: body.query || '',
+          results: [
+            {
+              name: 'Rajesh Kumar',
+              title: 'CTO',
+              company: 'TechCorp India',
+              email: 'rajesh@techcorp.com',
+              score: 85
+            },
+            {
+              name: 'Priya Singh',
+              title: 'CEO',
+              company: 'Uniforms India',
+              email: 'priya@uniforms.com',
+              score: 88
+            }
+          ],
+          timestamp: new Date().toISOString()
+        }), {
+          status: 200,
+          headers: {
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*'
+          }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        });
+      }
     }
-    
+
+    // Handle stats
     if (url.pathname === '/api/stats') {
       return new Response(JSON.stringify({
         total_leads: 80,
-        monthly_capacity: "2000-3000",
-        api_version: "1.0"
+        monthly_capacity: '2000-3000',
+        phases: 4,
+        status: 'active'
       }), {
+        status: 200,
         headers: { 'Content-Type': 'application/json' }
       });
     }
-    
+
     return new Response('Not Found', { status: 404 });
   }
 };
@@ -57,7 +90,7 @@ function getHTML() {
       
       <div class="mb-8">
         <input type="text" id="query" placeholder="Search leads..." class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg mb-4">
-        <button onclick="search()" class="w-full px-6 py-3 bg-gradient-to-r from-green-700 to-red-700 text-white font-semibold rounded-lg">Search</button>
+        <button onclick="performSearch()" class="w-full px-6 py-3 bg-gradient-to-r from-green-700 to-red-700 text-white font-semibold rounded-lg hover:shadow-lg">🔍 Search Leads</button>
       </div>
       
       <div id="results" class="space-y-4"></div>
@@ -69,23 +102,37 @@ function getHTML() {
   </div>
   
   <script>
-    async function search() {
+    async function performSearch() {
       const query = document.getElementById('query').value;
-      const res = await fetch('/api/search', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query })
-      });
-      const data = await res.json();
-      const html = data.results.map(r => \`
-        <div class="border-l-4 border-blue-500 bg-gray-50 p-4 rounded">
-          <h3 class="font-bold">\${r.name}</h3>
-          <p>\${r.title} at \${r.company}</p>
-          <p class="text-sm text-gray-600">\${r.email}</p>
-          <p class="text-sm"><strong>Score:</strong> \${r.score}/100</p>
-        </div>
-      \`).join('');
-      document.getElementById('results').innerHTML = html;
+      if (!query.trim()) {
+        document.getElementById('results').innerHTML = '<p class="text-gray-500">Enter a search query</p>';
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/search', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query })
+        });
+        const data = await res.json();
+
+        if (data.results && data.results.length > 0) {
+          const html = data.results.map(r => \`
+            <div class="border-l-4 border-blue-500 bg-blue-50 p-4 rounded">
+              <h3 class="font-bold text-lg">\${r.name}</h3>
+              <p class="text-gray-700"><strong>\${r.title}</strong> at \${r.company}</p>
+              <p class="text-gray-600">📧 \${r.email}</p>
+              <p class="mt-2 text-sm"><strong>Quality Score:</strong> \${r.score}/100 \${r.score >= 80 ? '🔴 HOT' : '🟡 WARM'}</p>
+            </div>
+          \`).join('');
+          document.getElementById('results').innerHTML = html;
+        } else {
+          document.getElementById('results').innerHTML = '<p class="text-gray-500">No results found</p>';
+        }
+      } catch (error) {
+        document.getElementById('results').innerHTML = '<p class="text-red-500">Error: ' + error.message + '</p>';
+      }
     }
   <\/script>
 </body>
